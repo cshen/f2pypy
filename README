@@ -1,0 +1,76 @@
+                      f2pypy-0.0 (experimental)
+
+This is an experimental/prototype version of NumPy's f2py which reads
+a pyf definition file to create a ctypes-based Python interface.
+
+The goal is to explore what needs to be done to get f2py support for
+pypy. As of 9 November 2011 "numpypy" is NOT mature enough to handle
+this task. Specifically, I can't get the array data location to pass
+it to a ctypes function.
+
+If you only use scalar values then this interface will work. With some
+luck. I've only tested it on one pyf file!
+
+I am not an f2py user nor am I a numpy user. For a proper
+implementation I would need to know more about how both f2py and numpy
+work. What I have done is only enough to say that conversion is
+possible. You are more than welcome to take on the task!
+
+  ====== Getting started ========
+
+Here's how I run the cblas code on my machine:
+
+  $PYTHON -m f2pypy tests/fblas.pyf -l vecLib --skip cdotu,zdotu,cdotc,zdotc
+  (works with pypy and with python2.7)
+
+This generates "fblas.py", which works with python2.7 (only one test
+failure with "test_fblas.py"). It does not work on pypy because pypy
+doesn't implement enough of the numpy API.
+
+PyPy's version of numpy arrays needs (at least):
+  - a way to pass a numpy array into a ctypes function
+  - support for the 'copy' keyword parameter to numpy.array()
+
+For now you can test it with cpython. Even in that environment, the
+limited tests don't all pass. There are many things about f2py which I
+don't understand.
+
+  ====== How does it work? ========
+
+The f2py submodule 'crackfortan' reads a pyf file and creates an AST.
+The subdirectory f2pypy/f2py/ contains an exact copy of the numpy/f2py
+from the 1.6 distribution. Copyright 2000-2011 by Pearu
+Peterson. Thank him for all the hard work in parsing Fortran program,
+developing the interface file definition, and making code which was
+very easy to repurpose for this project!
+
+Because it uses features of numpy which don't yet exist in numpypy, I
+created the "pypy_shim" module to monkey-patch those features.
+
+This module uses crackfortan to get the AST, then generates the
+corresponding Python code. The Python code includes:
+
+  - lookup code to get the shared library functions
+  - ctypes definitions for those functions
+  - equivalent Python interface (including default values)
+  - checks on the input values and ranges
+
+Parts of the pyf file embed C code, which is inserted into the CPython
+extension module. I used Fredrik Lundh description of the Pratt's
+"Top-down Operator Precendence" to parse the C expression into another
+AST. After a bit of manipulation, I convert that AST into Python code.
+
+  ====== Thanks ========
+
+Special thanks goes to Pearu Peterson for the f2py code, and to
+Fredrik Lundh for his essay on how to parse expressions using simple
+Python code.
+
+  ====== Copyright ========
+
+Copyright to f2py module and "test_blas.py" is held by others. I
+hereby irrevocably donate the remaining code to the public domain.
+
+                                Andrew Dalke
+                                Gothenburg, Sweden
+                                PyPy sprint, November 2011
