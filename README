@@ -1,5 +1,11 @@
                       f2pypy-0.0 (experimental)
 
+
+
+http://www.dalkescientific.com/writings/diary/archive/2011/11/09/f2pypy.html
+
+
+
 This is an experimental/prototype version of NumPy's f2py which reads
 a pyf definition file to create a ctypes-based Python interface.
 
